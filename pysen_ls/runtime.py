@@ -124,7 +124,7 @@ class Runtime(abc.ABC):
                 lsp_diagnostic = create_diagnostic(
                     diagnostic,
                     f"Incompatible with {reporter.name}",
-                    "E01",
+                    None,
                     f"{reporter.name}(pysen)",
                 )
 

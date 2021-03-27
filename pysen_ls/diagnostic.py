@@ -46,7 +46,7 @@ def has_overlap(lhs: Range, rhs: Range) -> bool:
 def create_diagnostic(
     diagnostic: pysen.diagnostic.Diagnostic,
     default_message: str,
-    code: str,
+    code: Optional[str],
     source: str,
 ) -> Diagnostic:
     message = diagnostic.message or default_message
