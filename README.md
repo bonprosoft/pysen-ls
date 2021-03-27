@@ -1,4 +1,4 @@
-# pysen-ls
+# pysen-ls: A language server implementation for pysen
 
 pysen-ls is a language server implementation for [pysen](https://github.com/pfnet/pysen).
 
