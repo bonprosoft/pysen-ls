@@ -1,13 +1,14 @@
-from typing import List, Tuple, Optional
 import pathlib
+from typing import List, Optional, Tuple
 
 import pysen.diagnostic
-from pygls.lsp.types import Position, Range, DiagnosticSeverity
+from pygls.lsp.types import DiagnosticSeverity, Position, Range
+
 from pysen_ls.diagnostic import (
     _has_deletion,
+    create_diagnostic,
     get_diagnostic_range,
     has_overlap,
-    create_diagnostic,
 )
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
@@ -108,7 +109,9 @@ def test_create_diagnostic() -> None:
     pysen_diagnostic = get_pysen_diagnostic(
         start_line=10, start_column=20, end_line=11, message="hello"
     )
-    lsp_diagnostic = create_diagnostic(pysen_diagnostic, "default", "E01", "pysen source")
+    lsp_diagnostic = create_diagnostic(
+        pysen_diagnostic, "default", "E01", "pysen source"
+    )
     assert lsp_diagnostic.range == get_range((9, 19), (10, 0))
     assert lsp_diagnostic.message == "hello"
     assert lsp_diagnostic.severity == DiagnosticSeverity.Warning
@@ -116,7 +119,12 @@ def test_create_diagnostic() -> None:
     assert lsp_diagnostic.source == "pysen source"
 
     pysen_diagnostic = get_pysen_diagnostic(
-        start_line=10, start_column=20, end_line=11, diff="-\n",
+        start_line=10,
+        start_column=20,
+        end_line=11,
+        diff="-\n",
     )
-    lsp_diagnostic = create_diagnostic(pysen_diagnostic, "default", "E01", "pysen source")
+    lsp_diagnostic = create_diagnostic(
+        pysen_diagnostic, "default", "E01", "pysen source"
+    )
     assert lsp_diagnostic.message == "default"
