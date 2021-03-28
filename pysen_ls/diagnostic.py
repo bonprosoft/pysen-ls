@@ -17,15 +17,16 @@ from pygls.lsp.types import (
 from .types import DocumentVersionType
 
 
+def _has_deletion(diff: str) -> bool:
+    return any(line for line in diff.splitlines() if line.startswith("-"))
+
+
 def get_diagnostic_range(diagnostic: pysen.diagnostic.Diagnostic) -> Range:
     start_line = diagnostic.start_line or 1
     start_column = diagnostic.start_column or 1
     end_line = diagnostic.end_line or start_line
     if diagnostic.diff is not None:
-        has_delection = any(
-            line for line in diagnostic.diff.splitlines() if line.startswith("-")
-        )
-        if has_delection:
+        if _has_deletion(diagnostic.diff):
             end_line += 1
 
     end_column = start_column
