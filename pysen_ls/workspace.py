@@ -50,7 +50,7 @@ class Workspace:
                     return None
                 except PysenError:
                     message = (
-                        f"an error occured while opening runtime for path: {base_path}",
+                        f"an error occurred while opening runtime for path: {base_path}",
                     )
                     self._server.show_message(message, MessageType.Error)
                     _logger.exception(message)
@@ -82,7 +82,7 @@ class Workspace:
                     return None
                 except PysenError:
                     message = (
-                        f"an error occured while opening runtime for path: {path}",
+                        f"an error occurred while opening runtime for path: {path}",
                     )
                     self._server.show_message(message, MessageType.Error)
                     _logger.exception(message)
