@@ -85,9 +85,9 @@ class Server:
 
         self._register_feature("$/setTrace", None, lambda *args, **kwargs: None)
         self._register_feature(
-            lsp.methods.INITIALIZED,
+            lsp.methods.INITIALIZE,
             None,
-            self._on_initialized,
+            self._on_initialize,
         )
         self._register_feature(
             lsp.methods.TEXT_DOCUMENT_DID_SAVE,
@@ -141,7 +141,7 @@ class Server:
         except Exception as e:
             self._server.show_message_log(f"Error ocurred: {e}")
 
-    def _load_config(self) -> None:
+    def _request_config(self) -> None:
         self._server.get_configuration(
             lsp.types.ConfigurationParams(
                 items=[
@@ -153,8 +153,18 @@ class Server:
             self._on_config_received,
         )
 
-    def _on_initialized(self, param: lsp.types.InitializedParams) -> None:
-        self._load_config()
+    def _on_initialize(self, params: lsp.types.InitializeParams) -> None:
+        # NOTE: The return value from this method will be ignored.
+        # pygls.LanguageServerProtocol provides some predefined lsp features.
+        # It calls methods starting with `bf_`, then call use defined methods.
+        # User defined methods are wrapped by the decorator in pygls,
+        # and it doesn't use the return values from the methods.
+        # See: https://github.com/openlawlibrary/pygls/blob/b5dcfa36ee3fab2cd0f3bf29248d58f5ad3b6796/pygls/protocol.py#L62-L75  # NOQA
+        options = params.initialization_options
+        if options is not None:
+            config = options.get("config", None)
+            if config is not None:
+                self._on_config_received([config])
 
     def _publish_file_diagnostics(
         self,
@@ -191,7 +201,7 @@ class Server:
             )
 
     def _on_reload_server_config(self, *args: Any) -> None:
-        self._load_config()
+        self._request_config()
 
     def _handle_document_command(self, request: Any, targets: Sequence[str]) -> None:
         uri = _get_request_params(request)
