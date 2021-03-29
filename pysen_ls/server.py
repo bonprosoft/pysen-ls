@@ -90,6 +90,11 @@ class Server:
             self._on_initialize,
         )
         self._register_feature(
+            lsp.methods.FORMATTING,
+            lsp.types.DocumentFormattingOptions(),
+            self._on_formatting,
+        )
+        self._register_feature(
             lsp.methods.TEXT_DOCUMENT_DID_SAVE,
             None,
             self._on_text_document_did_save,
@@ -213,6 +218,12 @@ class Server:
             return
 
         self._publish_file_diagnostics(targets, runtime)
+
+    def _on_formatting(self, params: lsp.types.DocumentFormattingParams) -> None:
+        # TODO: Consider adding unregistration config of this capability
+        # for someone who wants opt-out this feature.
+        uri = params.text_document.uri
+        self._handle_document_command([uri], self._config.format_targets)
 
     def _on_lint_document(self, args: Any) -> None:
         self._handle_document_command(args, self._config.lint_targets)
