@@ -154,7 +154,7 @@ def test_create_diagnostic() -> None:
     )
     assert lsp_diagnostic.range == get_range((9, 19), (10, 0))
     assert lsp_diagnostic.message == "hello"
-    assert lsp_diagnostic.severity == DiagnosticSeverity.Warning
+    assert lsp_diagnostic.severity == DiagnosticSeverity.Error
     assert lsp_diagnostic.code == "E01"
     assert lsp_diagnostic.source == "pysen source"
 

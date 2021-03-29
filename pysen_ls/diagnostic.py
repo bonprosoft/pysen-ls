@@ -71,7 +71,7 @@ def create_diagnostic(
     return Diagnostic(
         range=get_diagnostic_range(diagnostic),
         message=message,
-        severity=DiagnosticSeverity.Warning,
+        severity=DiagnosticSeverity.Error,
         code=code,
         source=source,
         related_information=None,
