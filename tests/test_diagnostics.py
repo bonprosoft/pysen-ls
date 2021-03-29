@@ -2,11 +2,22 @@ import pathlib
 from typing import List, Optional, Tuple
 
 import pysen.diagnostic
-from pygls.lsp.types import DiagnosticSeverity, Position, Range
+import pytest
+from pygls.lsp.types import (
+    CodeActionKind,
+    DiagnosticSeverity,
+    OptionalVersionedTextDocumentIdentifier,
+    Position,
+    Range,
+    TextDocumentEdit,
+    WorkspaceEdit,
+)
 
 from pysen_ls.diagnostic import (
     _has_deletion,
+    create_code_action,
     create_diagnostic,
+    create_text_edit,
     get_diagnostic_range,
     has_overlap,
 )
@@ -105,6 +116,35 @@ def test_has_overlap() -> None:
     assert get_overlapped_ranges(get_range((21, 0), (22, 0))) == []
 
 
+def test_create_text_edit() -> None:
+    with pytest.raises(AssertionError):
+        create_text_edit(
+            get_pysen_diagnostic(
+                start_line=10, start_column=20, end_line=11, message="hello"
+            )
+        )
+
+    diagnostic = get_pysen_diagnostic(
+        start_line=10,
+        start_column=20,
+        end_line=11,
+        diff="-aaa\n bbb  \n+ccc\n+ddd\n eee\n-fff",
+    )
+    edit = create_text_edit(diagnostic)
+    assert edit.range == get_range((9, 19), (11, 0))
+    assert edit.new_text == "bbb  \nccc\nddd\neee\n"
+
+    diagnostic = get_pysen_diagnostic(
+        start_line=10,
+        start_column=20,
+        end_line=11,
+        diff="-aaa\n-bbb\n",
+    )
+    edit = create_text_edit(diagnostic)
+    assert edit.range == get_range((9, 19), (11, 0))
+    assert edit.new_text == ""
+
+
 def test_create_diagnostic() -> None:
     pysen_diagnostic = get_pysen_diagnostic(
         start_line=10, start_column=20, end_line=11, message="hello"
@@ -128,3 +168,49 @@ def test_create_diagnostic() -> None:
         pysen_diagnostic, "default", "E01", "pysen source"
     )
     assert lsp_diagnostic.message == "default"
+
+
+def test_create_code_action() -> None:
+    pysen_diagnostic = get_pysen_diagnostic(
+        start_line=10, start_column=20, end_line=11, message="hello"
+    )
+    assert (
+        create_code_action(
+            "Format with pysen",
+            "file://source/pysen.py",
+            None,
+            pysen_diagnostic,
+            [],
+        )
+        is None
+    )
+
+    pysen_diagnostic = get_pysen_diagnostic(
+        start_line=10,
+        start_column=20,
+        end_line=11,
+        diff="+aaa\n bbb\n-ccc",
+    )
+    lsp_diagnostic = create_diagnostic(
+        pysen_diagnostic, "Error from pysen", None, "pysen"
+    )
+    action = create_code_action(
+        "Format with pysen",
+        "file://source/pysen.py",
+        1,
+        pysen_diagnostic,
+        [lsp_diagnostic],
+    )
+    assert action is not None
+    assert action.title == "Format with pysen"
+    assert action.kind == CodeActionKind.QuickFix
+    assert action.diagnostics == [lsp_diagnostic]
+    assert isinstance(action.edit, WorkspaceEdit)
+    changes = action.edit.document_changes
+    assert changes is not None and len(changes) == 1
+    change = changes[0]
+    assert isinstance(change, TextDocumentEdit)
+    assert isinstance(change.text_document, OptionalVersionedTextDocumentIdentifier)
+    assert change.text_document.uri == "file://source/pysen.py"
+    assert change.text_document.version == 1
+    assert change.edits == [create_text_edit(pysen_diagnostic)]

@@ -44,6 +44,22 @@ def has_overlap(lhs: Range, rhs: Range) -> bool:
     return cast(bool, max(lhs.start, rhs.start) <= min(lhs.end, rhs.end))
 
 
+def create_text_edit(diagnostic: pysen.diagnostic.Diagnostic) -> TextEdit:
+    assert diagnostic.diff is not None, "diff must not be None"
+
+    # TODO(igarashi): Use unidiff to get hunks
+    edit_range = get_diagnostic_range(diagnostic)
+    new_text: List[str] = []
+    for line in diagnostic.diff.splitlines(keepends=True):
+        if line.startswith("+") or line.startswith(" "):
+            new_text.append(line[1:])
+
+    return TextEdit(
+        range=edit_range,
+        new_text="".join(new_text),
+    )
+
+
 def create_diagnostic(
     diagnostic: pysen.diagnostic.Diagnostic,
     default_message: str,
@@ -73,13 +89,7 @@ def create_code_action(
     if diagnostic.diff is None:
         return None
 
-    # TODO(igarashi): Use unidiff to get hunks
-    edit_range = get_diagnostic_range(diagnostic)
-    new_text: List[str] = []
-    for line in diagnostic.diff.splitlines(keepends=True):
-        if line.startswith("+") or line.startswith(" "):
-            new_text.append(line[1:])
-
+    edit = create_text_edit(diagnostic)
     return CodeAction(
         title=title,
         kind=CodeActionKind.QuickFix,
@@ -91,12 +101,7 @@ def create_code_action(
                         uri=document_uri,
                         version=document_version,
                     ),
-                    edits=[
-                        TextEdit(
-                            range=edit_range,
-                            new_text="".join(new_text),
-                        ),
-                    ],
+                    edits=[edit],
                 ),
             ],
         ),
