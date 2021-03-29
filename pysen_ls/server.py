@@ -137,9 +137,9 @@ class Server:
         try:
             self._config = LanguageServerConfiguration.parse_obj(data[0])
         except ValidationError as e:
-            self._server.show_message_log(f"Error ocurred: {e}")
+            self._server.show_message_log(f"Error occurred: {e}")
         except Exception as e:
-            self._server.show_message_log(f"Error ocurred: {e}")
+            self._server.show_message_log(f"Error occurred: {e}")
 
     def _request_config(self) -> None:
         self._server.get_configuration(
