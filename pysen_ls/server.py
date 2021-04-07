@@ -90,6 +90,11 @@ class Server:
             self._on_initialize,
         )
         self._register_feature(
+            lsp.methods.WORKSPACE_DID_CHANGE_CONFIGURATION,
+            None,
+            self._on_workspace_did_change_configuration,
+        )
+        self._register_feature(
             lsp.methods.FORMATTING,
             lsp.types.DocumentFormattingOptions(),
             self._on_formatting,
@@ -168,6 +173,15 @@ class Server:
         options = params.initialization_options
         if options is not None:
             config = options.get("config", None)
+            if config is not None:
+                self._on_config_received([config])
+
+    def _on_workspace_did_change_configuration(
+        self, params: lsp.types.DidChangeConfigurationParams
+    ) -> None:
+        settings = params.settings
+        if settings is not None and isinstance(settings, dict):
+            config = settings.get("config", None)
             if config is not None:
                 self._on_config_received([config])
 
