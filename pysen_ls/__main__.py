@@ -14,7 +14,7 @@ def setup_logger() -> None:
     package_logger.addHandler(handler)
     package_logger.setLevel(logging.INFO)
 
-    # NOTE: To suppress warnings like `Ignoring notification for unknown method`
+    # NOTE: To suppress warnings like `Ignoring notification for unknown method`  # NOQA
     pygls_logger = logging.getLogger("pygls")
     pygls_logger.setLevel(logging.ERROR)
 
