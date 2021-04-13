@@ -2,26 +2,30 @@ import argparse
 import logging
 from typing import Optional
 
+from .logger import LanguageServerLogHandler
 from .server import ConnectionMethod, Server
 
 _logger = logging.getLogger(__name__)
 
 
-def setup_logger(log_file: Optional[str]) -> None:
-    if log_file:
-        handler = logging.FileHandler(log_file, mode="w")
-    else:
-        handler = logging.NullHandler()
-
-    handler.setLevel(logging.INFO)
-
+def setup_logger(log_file: Optional[str]) -> LanguageServerLogHandler:
     package_logger = logging.getLogger("pysen_ls")
-    package_logger.addHandler(handler)
+    # TODO: Make loglevel configurable from CLI
     package_logger.setLevel(logging.INFO)
+
+    ls_handler = LanguageServerLogHandler()
+    package_logger.addHandler(ls_handler)
+
+    if log_file:
+        file_handler = logging.FileHandler(log_file, mode="w")
+        file_handler.setLevel(logging.INFO)
+        package_logger.addHandler(file_handler)
 
     # NOTE: To suppress warnings like `Ignoring notification for unknown method`  # NOQA
     pygls_logger = logging.getLogger("pygls")
     pygls_logger.setLevel(logging.ERROR)
+
+    return ls_handler
 
 
 def main() -> None:
@@ -57,9 +61,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    setup_logger(args.log_file)
+    log_handler = setup_logger(args.log_file)
 
-    server = Server(args.method, args.host, args.port)
+    server = Server(args.method, args.host, args.port, log_handler)
     server.start()
 
 
