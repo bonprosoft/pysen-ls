@@ -1,26 +1,30 @@
 import argparse
 import logging
+from typing import Optional
 
 from .server import ConnectionMethod, Server
 
 _logger = logging.getLogger(__name__)
 
 
-def setup_logger() -> None:
-    handler = logging.FileHandler("pysen_ls.log", mode="w")
+def setup_logger(log_file: Optional[str]) -> None:
+    if log_file:
+        handler = logging.FileHandler(log_file, mode="w")
+    else:
+        handler = logging.NullHandler()
+
     handler.setLevel(logging.INFO)
 
     package_logger = logging.getLogger("pysen_ls")
     package_logger.addHandler(handler)
     package_logger.setLevel(logging.INFO)
 
-    # NOTE: To suppress warnings like `Ignoring notification for unknown method`
+    # NOTE: To suppress warnings like `Ignoring notification for unknown method`  # NOQA
     pygls_logger = logging.getLogger("pygls")
     pygls_logger.setLevel(logging.ERROR)
 
 
 def main() -> None:
-    setup_logger()
     parser = argparse.ArgumentParser("pysen-ls")
     method_options = parser.add_mutually_exclusive_group(required=True)
     method_options.add_argument(
@@ -47,7 +51,13 @@ def main() -> None:
         default=3746,
         help="Port number for the tcp server. Only works with --tcp.",
     )
+    parser.add_argument(
+        "--log-file",
+        help="Save logs to the given file.",
+    )
     args = parser.parse_args()
+
+    setup_logger(args.log_file)
 
     server = Server(args.method, args.host, args.port)
     server.start()
