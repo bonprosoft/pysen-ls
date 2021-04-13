@@ -52,7 +52,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--log-file",
-        help="redirect logs to the given file instead of writing to stderr.",
+        help="Save logs to the given file.",
     )
     args = parser.parse_args()
 
