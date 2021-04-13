@@ -1,16 +1,17 @@
 import argparse
 import logging
+from typing import Optional
 
 from .server import ConnectionMethod, Server
 
 _logger = logging.getLogger(__name__)
 
 
-def setup_logger(log_file: str) -> None:
+def setup_logger(log_file: Optional[str]) -> None:
     if log_file:
         handler = logging.FileHandler(log_file, mode="w")
     else:
-        handler = logging.StreamHandler()
+        handler = logging.NullHandler()
 
     handler.setLevel(logging.INFO)
 
