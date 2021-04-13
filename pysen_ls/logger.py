@@ -18,6 +18,11 @@ def _convert_loglevel(loglevel: int) -> MessageType:
 
 
 class LanguageServerLogHandler(logging.Handler):
+    def __init__(self) -> None:
+        super().__init__(logging.DEBUG)
+
+        self._server: Optional[LanguageServer] = None
+
     @property
     def server(self) -> Optional[LanguageServer]:
         return self._server

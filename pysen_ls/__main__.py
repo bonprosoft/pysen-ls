@@ -13,7 +13,7 @@ def setup_logger(log_file: Optional[str]) -> LanguageServerLogHandler:
     # TODO: Make loglevel configurable from CLI
     package_logger.setLevel(logging.INFO)
 
-    ls_handler = LanguageServerLogHandler(logging.DEBUG)
+    ls_handler = LanguageServerLogHandler()
     package_logger.addHandler(ls_handler)
 
     if log_file:
