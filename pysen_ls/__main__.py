@@ -6,8 +6,12 @@ from .server import ConnectionMethod, Server
 _logger = logging.getLogger(__name__)
 
 
-def setup_logger() -> None:
-    handler = logging.FileHandler("pysen_ls.log", mode="w")
+def setup_logger(log_file: str) -> None:
+    if log_file:
+        handler = logging.FileHandler(log_file, mode="w")
+    else:
+        handler = logging.StreamHandler()
+
     handler.setLevel(logging.INFO)
 
     package_logger = logging.getLogger("pysen_ls")
@@ -20,7 +24,6 @@ def setup_logger() -> None:
 
 
 def main() -> None:
-    setup_logger()
     parser = argparse.ArgumentParser("pysen-ls")
     method_options = parser.add_mutually_exclusive_group(required=True)
     method_options.add_argument(
@@ -47,7 +50,13 @@ def main() -> None:
         default=3746,
         help="Port number for the tcp server. Only works with --tcp.",
     )
+    parser.add_argument(
+        "--log-file",
+        help="redirect logs to the given file instead of writing to stderr.",
+    )
     args = parser.parse_args()
+
+    setup_logger(args.log_file)
 
     server = Server(args.method, args.host, args.port)
     server.start()
