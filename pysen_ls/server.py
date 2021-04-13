@@ -10,6 +10,7 @@ from pygls.server import LanguageServer
 
 from .config import LanguageServerConfiguration
 from .diagnostic import Diagnostic
+from .logger import LanguageServerLogHandler
 from .runtime import FileRuntime, WorkspaceRuntime
 from .workspace import Workspace
 
@@ -48,11 +49,16 @@ def _get_request_params(
 
 class Server:
     def __init__(
-        self, method: ConnectionMethod, host: Optional[str], port: Optional[int]
+        self,
+        method: ConnectionMethod,
+        host: Optional[str],
+        port: Optional[int],
+        log_handler: LanguageServerLogHandler,
     ) -> None:
         self._method = method
         self._host = host
         self._port = port
+        self._log_handler = log_handler
 
         if self._method == ConnectionMethod.TCP:
             if host is None or port is None:
@@ -164,6 +170,8 @@ class Server:
         )
 
     def _on_initialize(self, params: lsp.types.InitializeParams) -> None:
+        self._log_handler.server = self._server
+
         # NOTE: The return value from this method will be ignored.
         # pygls.LanguageServerProtocol provides some predefined lsp features.
         # It calls methods starting with `bf_`, then call use defined methods.
@@ -328,12 +336,15 @@ class Server:
 
     def start(self) -> None:
         _logger.info("starting server")
-        if self._method == ConnectionMethod.IO:
-            _logger.info("use stdio for the communication")
-            self._server.start_io()
-        else:
-            assert self._method == ConnectionMethod.TCP, self._method
-            _logger.info("use tcp for the communication")
-            assert self._host is not None
-            assert self._port is not None
-            self._server.start_tcp(self._host, self._port)
+        try:
+            if self._method == ConnectionMethod.IO:
+                _logger.info("use stdio for the communication")
+                self._server.start_io()
+            else:
+                assert self._method == ConnectionMethod.TCP, self._method
+                _logger.info("use tcp for the communication")
+                assert self._host is not None
+                assert self._port is not None
+                self._server.start_tcp(self._host, self._port)
+        finally:
+            self._log_handler.server = None
