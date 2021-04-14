@@ -84,7 +84,7 @@ class Runtime(abc.ABC):
         return self._base_uri
 
     @abc.abstractmethod
-    def get_uri(self, path: pathlib.Path) -> str:
+    def get_uri(self, path: pathlib.Path) -> Optional[str]:
         ...
 
     @abc.abstractmethod
@@ -121,6 +121,9 @@ class Runtime(abc.ABC):
         for reporter in reporter_factory.reporters:
             for diagnostic in reporter.diagnostics:
                 uri = self.get_uri(diagnostic.file_path)
+                if uri is None:
+                    continue
+
                 lsp_diagnostic = create_diagnostic(
                     diagnostic,
                     f"Incompatible with {reporter.name}",
@@ -166,7 +169,7 @@ class WorkspaceRuntime(Runtime):
         path = target_path.resolve()
         super().__init__(base_uri, path, path)
 
-    def get_uri(self, path: pathlib.Path) -> str:
+    def get_uri(self, path: pathlib.Path) -> Optional[str]:
         return _get_uri(self._base_uri, self._target_path, path)
 
     def get_version(self, uri: str) -> Optional[DocumentVersionType]:
@@ -189,9 +192,9 @@ class FileRuntime(Runtime):
     def uri(self) -> str:
         return self._base_uri
 
-    def get_uri(self, path: pathlib.Path) -> str:
+    def get_uri(self, path: pathlib.Path) -> Optional[str]:
         if self._target_path != path:
-            _logger.warning("got different path")
+            return None
 
         return self._base_uri
 
