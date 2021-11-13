@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "dataclasses>=0.6,<1.0;python_version<'3.7'",
         "pygls>=0.10.0,<0.11.0",
-        "pysen>=0.9.1,<0.10.0",
+        "pysen>=0.9.1,<0.11.0",
     ],
     package_data={"pysen_ls": ["py.typed"]},
     entry_points={"console_scripts": ["pysen_language_server=pysen_ls.__main__:main"]},
