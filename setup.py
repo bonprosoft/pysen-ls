@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="pysen_ls",
-    version="0.1.1",
+    version="0.1.2",
     packages=find_packages(),
     description="A language server implementation for pysen",
     long_description=open("README.md").read(),
